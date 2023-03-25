@@ -1,0 +1,16 @@
+{
+  "name": "anonymizer",
+  "version": "0.0.1",
+  "description": "Implementation of the Anonymizer algorithm",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "webpack": "^5.76.3",
+    "webpack-cli": "^5.0.1"
+  }
+}
