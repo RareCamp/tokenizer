@@ -1,5 +1,13 @@
-function helloWorld() {
-    return "Hello World";
-}
+const Record = require('./encode');
+const Types = require('./bloomfilter');
 
-module.exports = helloWorld;
+/**
+ * Entry point for the Anonymizer library. 
+ */
+
+module.exports = {
+    "Record": Record,
+    "DateType": Types.DateType,
+    "StringType": Types.StringType,
+    "GenderType": Types.GenderType,
+}
