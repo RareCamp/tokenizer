@@ -1,0 +1,46 @@
+
+
+import { DateSanitizer, GenderSanitizer, StringSanitizer } from "./Sanitizer";
+import { QGramExpander, DateExpander } from "./Expander";
+import { PrivacyPreservingBloomFilterTokenizer } from "./PrivacyPreservingBloomFilterTokenizer";
+
+export class PIITokenizer {
+  stringSanitizer: StringSanitizer;
+  dateSanitizer: DateSanitizer;
+  genderSanitizer: GenderSanitizer;
+
+  dateExpander: DateExpander;
+  qGramExpander: QGramExpander;
+
+  tokenizer: PrivacyPreservingBloomFilterTokenizer;
+
+  constructor(bloomFilterLength: number = 1000, numberOfHashFunctions: number = 10, privacyBudget: number = 0.1) {
+    this.stringSanitizer = new StringSanitizer();
+    this.dateSanitizer = new DateSanitizer();
+    
+    this.dateExpander = new DateExpander();
+    this.qGramExpander = new QGramExpander();
+  
+    this.tokenizer = new PrivacyPreservingBloomFilterTokenizer(bloomFilterLength, numberOfHashFunctions, privacyBudget);
+  }
+
+  tokenize(firstName: string, lastName: string, dateOfBirth: Date, gender: string, other: string[]): Uint8Array {
+
+    // Sanitize fields
+    firstName = this.stringSanitizer.sanitize(firstName);
+    lastName = this.stringSanitizer.sanitize(lastName);
+    gender = this.genderSanitizer.sanitize(gender);
+
+    // Expand fields
+    let fields: string[] = [
+      ...this.qGramExpander.expand(firstName),
+      ...this.qGramExpander.expand(lastName),
+      ...this.dateExpander.expand(dateOfBirth),
+      gender,
+    ];
+
+    // Create Bloom filter
+    let tokens = this.tokenizer.tokenize(fields);
+    return tokens;
+  }
+}
