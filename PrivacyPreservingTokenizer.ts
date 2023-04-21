@@ -1,5 +1,7 @@
 
-import * as crypto from 'crypto';
+const crypto = require('crypto').webcrypto;
+
+import { createHash } from 'crypto';
 
 
 // False Positive Rate = (1 - e^(-kn/l))^k
@@ -51,7 +53,7 @@ export class PrivacyPreservingTokenizer {
   }
 
   private nodeHash(field: string): string {
-    return crypto.createHash('sha256').update(field).digest('hex');
+    return createHash('sha256').update(field).digest('hex');
   }
 
   // TODO: in order to use this, we need to make everything async
@@ -79,7 +81,7 @@ export class PrivacyPreservingTokenizer {
   /************************/
 
   private differentialPrivacy(bf: Uint8Array): Uint8Array {
-    return bf.map(this.diffuseBit);
+    return bf.map(this.diffuseBit, this);
   }
 
   private diffuseBit(bit: number): number {
@@ -96,7 +98,7 @@ export class PrivacyPreservingTokenizer {
 
   private cryptoRandom(): number {
     let array = new Uint32Array(1);
-    crypto.getRandomValues(array);
-    return array[0] / 0xffffffff;
+    array = crypto.getRandomValues(array);
+    return array[0] / (0xffffffff + 1);
   }
 }

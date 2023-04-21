@@ -2,7 +2,7 @@
 
 import { DateSanitizer, GenderSanitizer, StringSanitizer } from "./Sanitizer";
 import { QGramExpander, DateExpander } from "./Expander";
-import { PrivacyPreservingBloomFilterTokenizer } from "./PrivacyPreservingBloomFilterTokenizer";
+import { PrivacyPreservingTokenizer } from "./PrivacyPreservingTokenizer";
 
 export class PIITokenizer {
   stringSanitizer: StringSanitizer;
@@ -12,7 +12,7 @@ export class PIITokenizer {
   dateExpander: DateExpander;
   qGramExpander: QGramExpander;
 
-  tokenizer: PrivacyPreservingBloomFilterTokenizer;
+  tokenizer: PrivacyPreservingTokenizer;
 
   constructor(bloomFilterLength: number = 1000, numberOfHashFunctions: number = 10, privacyBudget: number = 0.1) {
     this.stringSanitizer = new StringSanitizer();
@@ -21,7 +21,7 @@ export class PIITokenizer {
     this.dateExpander = new DateExpander();
     this.qGramExpander = new QGramExpander();
   
-    this.tokenizer = new PrivacyPreservingBloomFilterTokenizer(bloomFilterLength, numberOfHashFunctions, privacyBudget);
+    this.tokenizer = new PrivacyPreservingTokenizer(bloomFilterLength, numberOfHashFunctions, privacyBudget);
   }
 
   tokenize(firstName: string, lastName: string, dateOfBirth: Date, gender: string, other: string[]): Uint8Array {
