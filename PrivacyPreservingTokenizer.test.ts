@@ -130,29 +130,3 @@ test('random uses Math.random', () => {
   }
   jest.spyOn(global.Math, 'random').mockRestore();
 });
-
-/*
-test('cryptoRandom', () => {
-  function cryptoRandom(n) {
-    jest.spyOn(crypto, 'getRandomValues').mockReturnValue(
-      new Uint32Array(1).fill(n));
-    return new PPT(0, 0, 0)["cryptoRandom"]();
-  }
-
-  const VALUES = [
-    [0x0, 0],
-    [0x80000000, 0.5],
-    [0xffffffff, 1],
-  ];
-
-  const PRECISION = 9;
-  for (const [n, x] of VALUES) {
-    expect(cryptoRandom(n)).toBeCloseTo(x, PRECISION);
-  }
-
-  // Should always be strictly less than 1
-  expect(cryptoRandom(0xffffffff)).toBeLessThan(1);
-
-  jest.spyOn(crypto, 'getRandomValues').mockRestore();
-});
-*/

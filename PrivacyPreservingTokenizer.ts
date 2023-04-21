@@ -1,6 +1,4 @@
 
-const crypto = require('crypto').webcrypto;
-
 import { createHash } from 'crypto';
 
 
@@ -65,7 +63,7 @@ export class PrivacyPreservingTokenizer {
   }
 
   private diffuseBit(bit: number): number {
-    if (bit !== 0 && bit !== 1) {
+    if (bit !== 0 && bit !== 1) { // TODO: unit test this
       throw Error("bit must be 0 or 1");
     }
 
