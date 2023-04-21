@@ -14,7 +14,7 @@ export class PrivacyPreservingTokenizer {
   constructor(bloomFilterLength: number, numberOfHashFunctions: number, privacyBudget: number) {
     this.bloomFilterLength = bloomFilterLength;
     this.numberOfHashFunctions = numberOfHashFunctions;
-    this.eta = 1 / (1 + Math.exp(privacyBudget));
+    this.eta = 1 / (1 + Math.exp(privacyBudget)); // Laplacian?
   }
 
   tokenize(fields: string[]): Uint8Array {
@@ -22,7 +22,7 @@ export class PrivacyPreservingTokenizer {
     let bf = new Uint8Array(this.bloomFilterLength).fill(0);
 
     // Insert each field into the bloom filter
-    fields.reduce(this.insert, bf);
+    fields.reduce(this.bloomFilterAdd, bf);
 
     // Apply differential privacy
     this.differentialPrivacy(bf);
@@ -34,13 +34,14 @@ export class PrivacyPreservingTokenizer {
   /* Bloom filter functions */
   /**************************/
 
-  private insert(bf: Uint8Array, field: string): Uint8Array {
+  private bloomFilterAdd(bf: Uint8Array, field: string): Uint8Array {
     this.hashes(field).map(this.hashIndex).forEach(i => bf[i] = 1);
     return bf;
   }
 
   private hashIndex(hexHash: string): number {
-    return Number("0x" + hexHash.slice(-8)) % this.bloomFilterLength;
+    return Number(BigInt("0x"+ hexHash) % BigInt(this.bloomFilterLength)); // this.bloomFilterLength is a Number, so casting from BigInt to Number should be safe
+    // return Number("0x" + hexHash.slice(-8)) % this.bloomFilterLength;
   }
 
   private hashes(field: string): string[] {
@@ -48,33 +49,12 @@ export class PrivacyPreservingTokenizer {
   }
 
   private hash(field: string, hashIndex: number): string {
-    field += "#" + hashIndex.toString();
-    return this.nodeHash(field);
+    return this.nodeHash(field + "#" + hashIndex.toString()); // TODO: is this a safe way to hash?
   }
 
   private nodeHash(field: string): string {
     return createHash('sha256').update(field).digest('hex');
   }
-
-  // TODO: in order to use this, we need to make everything async
-  /*
-  async webCryptoHash(record: string): Promise<string> {
-    const utf8 = new TextEncoder().encode(record);
-    const h = crypto.subtle.digest('SHA-256', utf8).then((hashBuffer) => {
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      //console.log(hashArray);
-      const hashHex = hashArray
-        .map((bytes) => bytes.toString(16).padStart(2, '0'))
-        .join('');
-      console.log(hashHex);
-      return hashHex;
-    });
-    await h;
-    console.log("h: " + h);
-
-    throw new Error('Failed to hash record: ' + record);
-  }
-  */
 
   /************************/
   /* Differential privacy */
@@ -85,20 +65,14 @@ export class PrivacyPreservingTokenizer {
   }
 
   private diffuseBit(bit: number): number {
+    if (bit !== 0 && bit !== 1) {
+      throw Error("bit must be 0 or 1");
+    }
+
     return this.random() <= this.eta ? bit : 1 - bit;
   }
 
   private random(): number {
-    return this.mathRandom();
-  }
-
-  private mathRandom(): number {
     return Math.random();
-  }
-
-  private cryptoRandom(): number {
-    let array = new Uint32Array(1);
-    array = crypto.getRandomValues(array);
-    return array[0] / (0xffffffff + 1);
   }
 }
