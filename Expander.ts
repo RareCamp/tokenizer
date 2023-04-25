@@ -3,7 +3,7 @@ export class QGramExpander {
   constructor() {
   }
 
-  expand(record: string): string[] {
+  expand(record: string, q: number = 2): string[] {
     return [record];
 
     /* TODO
@@ -25,7 +25,7 @@ export class DateExpander {
     dayBefore.setDate(dayBefore.getDate() - 1);
 
     const dayAfter = new Date(date);
-    dayAfter.setDate(dayBefore.getDate() + 1);
+    dayAfter.setDate(dayAfter.getDate() + 1);
 
     const dates = [date, dayBefore, dayAfter];
     return dates.map(this.formatDate);

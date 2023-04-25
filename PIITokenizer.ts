@@ -14,9 +14,10 @@ export class PIITokenizer {
 
   tokenizer: PrivacyPreservingTokenizer;
 
-  constructor(bloomFilterLength: number = 1000, numberOfHashFunctions: number = 10, privacyBudget: number = 0.1) {
+  constructor(bloomFilterLength: number = 200, numberOfHashFunctions: number = 20, privacyBudget: number = 3.0) {
     this.stringSanitizer = new StringSanitizer();
     this.dateSanitizer = new DateSanitizer();
+    this.genderSanitizer = new GenderSanitizer();
     
     this.dateExpander = new DateExpander();
     this.qGramExpander = new QGramExpander();
@@ -24,7 +25,7 @@ export class PIITokenizer {
     this.tokenizer = new PrivacyPreservingTokenizer(bloomFilterLength, numberOfHashFunctions, privacyBudget);
   }
 
-  tokenize(firstName: string, lastName: string, dateOfBirth: Date, gender: string, other: string[]): Uint8Array {
+  tokenize(firstName: string, lastName: string, dateOfBirth: Date, gender: string, other: string[] = []): Uint8Array {
 
     // Sanitize fields
     firstName = this.stringSanitizer.sanitize(firstName);

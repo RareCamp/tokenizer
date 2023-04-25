@@ -14,7 +14,7 @@ test('constructor', () => {
   const numberOfHashFunctions = 10;
   const privacyBudget = 0.5;
   let ppt = new PPT(bloomFilterLength, numberOfHashFunctions, privacyBudget);
-  
+
   expect(ppt.bloomFilterLength).toBe(bloomFilterLength);
   expect(ppt.numberOfHashFunctions).toBe(numberOfHashFunctions);
   expect(ppt.eta).toBe(1 / (1 + Math.exp(privacyBudget)));
@@ -35,6 +35,33 @@ test('eta calculation', () => {
 /* Tokenize */
 /************/
 
+test('tokenize', () => {
+  let ppt = new PPT(100, 1, 0);
+
+  // hashIndex always returns 0 and never flips a bit
+  let spyHashIndex = jest.spyOn(ppt as any, 'hashIndex');
+  let spyDiffuseBit = jest.spyOn(ppt as any, 'diffuseBit').mockImplementation((bit) => bit);
+
+  for (let i = 0; i < 100; i++) {
+    spyHashIndex.mockReturnValueOnce(5).mockReturnValueOnce(7);
+    
+    let tokens = ppt.tokenize(["hello", "world"]);
+    //spyHashIndex.mockReturnValue(0);
+    expect(tokens).toBeInstanceOf(Uint8Array);
+    expect(tokens.length).toBe(100);
+
+    // 5th and 7th bits should be set
+    for (let j = 0; j < 10; j++) {
+      expect(tokens[j]).toBe(j == 5 || j == 7 ? 1 : 0);
+    }
+
+    expect(spyHashIndex).toHaveBeenCalledTimes(2);
+    spyHashIndex.mockClear();
+  }
+
+  spyHashIndex.mockRestore();
+  spyDiffuseBit.mockRestore();
+});
 
 /****************/
 /* Bloom filter */
@@ -98,35 +125,43 @@ test('diffuse bit', () => {
 
   let ppt = new PPT(0, 0, 0);
 
+  // Check that if the bit is not 0 or 1, an error is thrown
+  expect(() => ppt["diffuseBit"](2)).toThrow();
+  expect(() => ppt["diffuseBit"](-1)).toThrow();
+
   // Never flip bit
-  jest.spyOn(ppt as any, 'random').mockReturnValue(0);
+  let spyRandom = jest.spyOn(ppt as any, 'random').mockReturnValue(0);
   for (let i = 0; i < ITERATIONS; i++) {
     expect(ppt["diffuseBit"](0)).toBe(0);
     expect(ppt["diffuseBit"](1)).toBe(1);
   }
 
   // Always flip bit
-  jest.spyOn(ppt as any, 'random').mockReturnValue(1);
+  spyRandom.mockReturnValue(1);
   for (let i = 0; i < ITERATIONS; i++) {
     expect(ppt["diffuseBit"](0)).toBe(1);
     expect(ppt["diffuseBit"](1)).toBe(0);
   }
+
+  spyRandom.mockRestore();
 });
 
 
 test('diffuse bits', () => {
   const N = 100;
   let ppt = new PPT(N, 0, 0);
-  let diffuseBit = jest.spyOn(ppt as any, "diffuseBit").mockReturnValue(1);
+  let diffuseBitSpy = jest.spyOn(ppt as any, "diffuseBit").mockReturnValue(1);
   ppt["differentialPrivacy"](new Uint8Array(N).fill(0));
-  expect(diffuseBit).toHaveBeenCalledTimes(N);
+  expect(diffuseBitSpy).toHaveBeenCalledTimes(N);
+  diffuseBitSpy.mockRestore();
 });
 
 
 test('random uses Math.random', () => {
+  let mathRandomSpy = jest.spyOn(global.Math, 'random');
   for (let x of [0, 0.2, 0.4, 0.6, 0.8, 1]) {
-    jest.spyOn(global.Math, 'random').mockReturnValue(x);
+    mathRandomSpy.mockReturnValue(x);
     expect((new PPT(0, 0, 0))["random"]()).toBe(x);
   }
-  jest.spyOn(global.Math, 'random').mockRestore();
+  mathRandomSpy.mockRestore();
 });

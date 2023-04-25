@@ -2,9 +2,9 @@
 import { createHash } from 'crypto';
 
 
-// False Positive Rate = (1 - e^(-kn/l))^k
-
 export class PrivacyPreservingTokenizer {
+  HASH_FUNCTION: string = 'sha256';
+
   bloomFilterLength: number;
   numberOfHashFunctions: number;
   eta: number; // Probability of *not* flipping a bit
@@ -17,29 +17,40 @@ export class PrivacyPreservingTokenizer {
 
   tokenize(fields: string[]): Uint8Array {
     // Initialize bloom filter
-    let bf = new Uint8Array(this.bloomFilterLength).fill(0);
+    let bloomFilter = new Uint8Array(this.bloomFilterLength).fill(0);
 
     // Insert each field into the bloom filter
-    fields.reduce(this.bloomFilterAdd, bf);
+    fields.reduce(this.bloomFilterInsert.bind(this), bloomFilter);
 
     // Apply differential privacy
-    this.differentialPrivacy(bf);
+    bloomFilter = this.differentialPrivacy(bloomFilter);
 
-    return bf;
+    return bloomFilter;
   }
 
   /**************************/
   /* Bloom filter functions */
   /**************************/
 
-  private bloomFilterAdd(bf: Uint8Array, field: string): Uint8Array {
-    this.hashes(field).map(this.hashIndex).forEach(i => bf[i] = 1);
+  /*
+  private bloomFilterInsertAllInOne(bf: Uint8Array, field: string): Uint8Array {
+    for (let i = 0; i < this.numberOfHashFunctions; i++) {
+      const saltedField = field + "#" + i.toString();
+      const hash = nodeHash(saltedField);
+      const index = Number(BigInt("0x" + hash) % BigInt(this.bloomFilterLength));
+      bf[index] = 1;
+    }
+    return bf;
+  }
+  */
+
+  private bloomFilterInsert(bf: Uint8Array, field: string): Uint8Array {
+    this.hashes(field).map(this.hashIndex, this).forEach(i => bf[i] = 1);
     return bf;
   }
 
   private hashIndex(hexHash: string): number {
-    return Number(BigInt("0x"+ hexHash) % BigInt(this.bloomFilterLength)); // this.bloomFilterLength is a Number, so casting from BigInt to Number should be safe
-    // return Number("0x" + hexHash.slice(-8)) % this.bloomFilterLength;
+    return Number(BigInt("0x" + hexHash) % BigInt(this.bloomFilterLength)); // this.bloomFilterLength is a Number, so casting from BigInt to Number should be safe
   }
 
   private hashes(field: string): string[] {
@@ -51,7 +62,7 @@ export class PrivacyPreservingTokenizer {
   }
 
   private nodeHash(field: string): string {
-    return createHash('sha256').update(field).digest('hex');
+    return createHash(this.HASH_FUNCTION).update(field).digest('hex');
   }
 
   /************************/
@@ -63,7 +74,7 @@ export class PrivacyPreservingTokenizer {
   }
 
   private diffuseBit(bit: number): number {
-    if (bit !== 0 && bit !== 1) { // TODO: unit test this
+    if (bit !== 0 && bit !== 1) { // TODO: is this necessary? We only call this function internally
       throw Error("bit must be 0 or 1");
     }
 

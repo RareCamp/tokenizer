@@ -1,13 +1,15 @@
-// NOTE: with this design, we need to sanitize and expand each type separately
-//       We may want to join the Sanitizer and Expander classes.
 
 export class StringSanitizer {
 
   constructor() {
   }
 
-  sanitize(record: string): string {
-    return record;
+  sanitize(field: string): string {
+    field = field.toLowerCase();
+    field = field.trim();
+    field = field.replace(/\s/g, ' ');
+    field = field.replace(/  +/g, ' ');
+    return field;
   }
 }
 
@@ -16,8 +18,21 @@ export class GenderSanitizer {
   constructor() {
   }
 
-  sanitize(record: string): string {
-    return "M";
+  sanitize(gender: string): string {
+    let stringSanitizer = new StringSanitizer();
+    gender = stringSanitizer.sanitize(gender);
+
+    const MALE = ["m", "male", "man", "boy"];
+    const FEMALE = ["f", "female", "woman", "girl"];
+
+    if (MALE.includes(gender)) {
+      return "M";
+    }
+    if (FEMALE.includes(gender)) {
+      return "F";
+    }
+
+    throw Error("Unknown gender: " + gender);
   }
 }
 
