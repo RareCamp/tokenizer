@@ -1,6 +1,6 @@
 import { expect, test } from '@jest/globals';
 
-import { DateExpander, QGramExpander } from './Expander';
+import { DateExpander, QGramExpander, GenderExpander } from './Expander';
 
 
 /*****************/
@@ -43,4 +43,21 @@ test('DateExpander', () => {
   expect(expanded).toContain("2020-01-01");
   expect(expanded).toContain("2019-12-31");
   expect(expanded).toContain("2020-01-02");
+});
+
+/******************/
+/* GenderExpander */
+/******************/
+
+test('GenderExpander', () => {
+  let gs = new GenderExpander();
+  
+  // M and F get expanded
+  expect(gs.expand("M")).toStrictEqual(["gender:M"]);
+  expect(gs.expand("F")).toStrictEqual(["gender:F"]);
+
+  // Any other parameter throws an error
+  expect(() => gs.expand("X")).toThrow();
+  expect(() => gs.expand("")).toThrow();
+  expect(() => gs.expand("male")).toThrow();
 });

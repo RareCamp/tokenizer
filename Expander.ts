@@ -38,3 +38,16 @@ export class DateExpander {
     return y + '-' + ('0' + m).slice(-2) + '-' + ('0' + d).slice(-2);
   }
 }
+
+export class GenderExpander {
+  constructor() {
+  }
+
+  expand(gender: string): string[] {
+    if (gender !== "M" && gender !== "F") {
+      throw Error("gender should be M or F");
+    }
+
+    return ["gender:" + gender];
+  }
+}
