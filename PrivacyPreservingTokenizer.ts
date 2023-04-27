@@ -45,8 +45,8 @@ export class PrivacyPreservingTokenizer {
     return [...Array(this.numberOfHashFunctions).keys()].map(i => this.hash(field, i));
   }
 
-  private hash(field: string, hashFunctionIndex: number): string {
-    return this.nodeHash(field + "#" + hashFunctionIndex.toString()); // TODO: is this a safe way to hash?
+  private hash(field: string, hashFunctionNumber: number): string {
+    return this.nodeHash(field + "#" + hashFunctionNumber.toString()); // TODO: is this a safe way to hash?
   }
 
   private nodeHash(field: string): string {
