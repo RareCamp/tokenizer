@@ -7,12 +7,12 @@ export class PrivacyPreservingTokenizer {
 
   bloomFilterLength: number;
   numberOfHashFunctions: number;
-  eta: number; // Probability of *not* flipping a bit
+  flipBitProbability: number;
 
   constructor(bloomFilterLength: number, numberOfHashFunctions: number, privacyBudget: number) {
     this.bloomFilterLength = bloomFilterLength;
     this.numberOfHashFunctions = numberOfHashFunctions;
-    this.eta = 1 / (1 + Math.exp(privacyBudget)); // Laplacian?
+    this.flipBitProbability = 1 - 1 / (1 + Math.exp(privacyBudget));
   }
 
   tokenize(fields: string[]): Uint8Array {
@@ -78,7 +78,7 @@ export class PrivacyPreservingTokenizer {
       throw Error("bit must be 0 or 1");
     }
 
-    return this.random() <= this.eta ? bit : 1 - bit;
+    return this.random() <= this.flipBitProbability ? 1 - bit : bit;
   }
 
   private random(): number {

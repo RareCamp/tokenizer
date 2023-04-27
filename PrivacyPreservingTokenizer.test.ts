@@ -17,17 +17,18 @@ test('constructor', () => {
 
   expect(ppt.bloomFilterLength).toBe(bloomFilterLength);
   expect(ppt.numberOfHashFunctions).toBe(numberOfHashFunctions);
-  expect(ppt.eta).toBe(1 / (1 + Math.exp(privacyBudget)));
+  expect(ppt.flipBitProbability).toBe(1 - 1 / (1 + Math.exp(privacyBudget)));
 });
 
-test('eta calculation', () => {
-  function eta(epsilon) {
+test('preservingBitProbability calculation', () => {
+  function preservingBitProbability(epsilon) {
     // eta = 1 / (1 + exp(epsilon))
-    return 1 / (1 + Math.exp(epsilon));
+    let eta = 1 / (1 + Math.exp(epsilon));
+    return 1 - eta;
   }
 
   let epsilons: number[] = [-100, -5, -1, 0, 0.2, 0.5, 0.8, 1, 2, 5, 10, 100, 1000, 10000, 100000, 1000000];
-  epsilons.forEach(eps => expect((new PPT(0, 0, eps)).eta).toBe(eta(eps)));
+  epsilons.forEach(eps => expect((new PPT(0, 0, eps)).flipBitProbability).toBe(preservingBitProbability(eps)));
 });
 
 
@@ -44,7 +45,7 @@ test('tokenize', () => {
 
   for (let i = 0; i < 100; i++) {
     spyHashIndex.mockReturnValueOnce(5).mockReturnValueOnce(7);
-    
+
     let tokens = ppt.tokenize(["hello", "world"]);
     //spyHashIndex.mockReturnValue(0);
     expect(tokens).toBeInstanceOf(Uint8Array);
@@ -130,14 +131,14 @@ test('diffuse bit', () => {
   expect(() => ppt["diffuseBit"](-1)).toThrow();
 
   // Never flip bit
-  let spyRandom = jest.spyOn(ppt as any, 'random').mockReturnValue(0);
+  let spyRandom = jest.spyOn(ppt as any, 'random').mockReturnValue(1);
   for (let i = 0; i < ITERATIONS; i++) {
     expect(ppt["diffuseBit"](0)).toBe(0);
     expect(ppt["diffuseBit"](1)).toBe(1);
   }
 
   // Always flip bit
-  spyRandom.mockReturnValue(1);
+  spyRandom.mockReturnValue(0);
   for (let i = 0; i < ITERATIONS; i++) {
     expect(ppt["diffuseBit"](0)).toBe(1);
     expect(ppt["diffuseBit"](1)).toBe(0);
