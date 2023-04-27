@@ -14,7 +14,7 @@ export class PIITokenizer {
 
   tokenizer: PrivacyPreservingTokenizer;
 
-  constructor(bloomFilterLength: number = 200, numberOfHashFunctions: number = 20, privacyBudget: number = 3.0) {
+  constructor(bloomFilterLength: number = 500, numberOfHashFunctions: number = 20, privacyBudget: number = 3.0) {
     this.stringSanitizer = new StringSanitizer();
     this.dateSanitizer = new DateSanitizer();
     this.genderSanitizer = new GenderSanitizer();
