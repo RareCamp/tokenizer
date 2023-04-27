@@ -32,18 +32,6 @@ export class PrivacyPreservingTokenizer {
   /* Bloom filter functions */
   /**************************/
 
-  /*
-  private bloomFilterInsertAllInOne(bf: Uint8Array, field: string): Uint8Array {
-    for (let i = 0; i < this.numberOfHashFunctions; i++) {
-      const saltedField = field + "#" + i.toString();
-      const hash = nodeHash(saltedField);
-      const index = Number(BigInt("0x" + hash) % BigInt(this.bloomFilterLength));
-      bf[index] = 1;
-    }
-    return bf;
-  }
-  */
-
   private bloomFilterInsert(bf: Uint8Array, field: string): Uint8Array {
     this.hashes(field).map(this.hashIndex, this).forEach(i => bf[i] = 1);
     return bf;
@@ -57,8 +45,8 @@ export class PrivacyPreservingTokenizer {
     return [...Array(this.numberOfHashFunctions).keys()].map(i => this.hash(field, i));
   }
 
-  private hash(field: string, hashIndex: number): string {
-    return this.nodeHash(field + "#" + hashIndex.toString()); // TODO: is this a safe way to hash?
+  private hash(field: string, hashFunctionIndex: number): string {
+    return this.nodeHash(field + "#" + hashFunctionIndex.toString()); // TODO: is this a safe way to hash?
   }
 
   private nodeHash(field: string): string {
